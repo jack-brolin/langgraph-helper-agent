@@ -1,0 +1,15 @@
+fastapi==0.128.0
+uvicorn[standard]==0.40.0
+pydantic==2.12.5
+pydantic-settings==2.12.0
+langchain==1.2.7
+langchain-core==1.2.7
+langchain-google-genai==4.2.0
+langgraph==1.0.7
+langgraph-checkpoint==4.0.0
+tavily-python==0.7.19
+python-dotenv==1.2.1
+langchain-chroma==1.1.0
+langchain-text-splitters==1.1.0
+chromadb==1.4.1
+requests==2.32.5

@@ -1,0 +1,393 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.header .subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.new-conversation {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+}
+
+.new-conversation:hover {
+  background: #334155;
+}
+
+
+.chat {
+  background: #111827;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #1f2937;
+}
+
+.empty-state {
+  color: #94a3b8;
+  text-align: center;
+  margin: auto;
+}
+
+.suggestions-label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.suggestions {
+  display: grid;
+  gap: 10px;
+}
+
+.suggestion {
+  text-align: left;
+  background: #0b1220;
+  color: #e2e8f0;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.suggestion:hover {
+  background: #111827;
+}
+
+.message {
+  padding: 16px;
+  border-radius: 12px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #1e293b;
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background: #111827;
+}
+
+.role {
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.content {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.cursor {
+  display: inline-block;
+  animation: blink 1s infinite;
+  color: #38bdf8;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.message.streaming {
+  border-color: #38bdf8;
+}
+
+.citations {
+  margin-top: 12px;
+  border-top: 1px solid #1f2937;
+  padding-top: 12px;
+}
+
+.citations .label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.citations ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.citations li {
+  background: #0b1220;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #1f2937;
+}
+
+.citations a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.citations p {
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.mode {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.composer textarea {
+  resize: vertical;
+  min-height: 80px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  background: #0b1220;
+  color: inherit;
+  font-size: 14px;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.thread-indicator {
+  font-size: 12px;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.thread-indicator::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #fca5a5;
+  background: #2b0f14;
+  border: 1px solid #7f1d1d;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+/* Reasoning Section Styles */
+.reasoning-section {
+  margin-bottom: 16px;
+  background: #0a0f1a;
+  border-radius: 10px;
+  border: 1px solid #1e293b;
+  overflow: hidden;
+}
+
+.reasoning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.reasoning-icon {
+  font-size: 16px;
+}
+
+.iteration-badge {
+  margin-left: auto;
+  background: #0f172a;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #38bdf8;
+}
+
+.reasoning-steps {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.reasoning-step {
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.reasoning-step.start {
+  color: #38bdf8;
+}
+
+.reasoning-step.agent {
+  color: #a78bfa;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.reasoning-step.tool_call {
+  color: #fbbf24;
+  padding-left: 12px;
+}
+
+.reasoning-step.tool_result {
+  color: #22c55e;
+  padding-left: 12px;
+}
+
+.reasoning-step.evaluate {
+  color: #f472b6;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.reasoning-step.evaluation_decision {
+  color: #f472b6;
+  padding-left: 12px;
+}
+
+.reasoning-step.respond {
+  color: #22c55e;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.reasoning-step.thinking {
+  color: #64748b;
+}
+
+.thinking-dots {
+  display: inline-block;
+  animation: thinking 1.4s infinite;
+}
+
+@keyframes thinking {
+  0%, 20% { content: "."; }
+  40% { content: ".."; }
+  60%, 100% { content: "..."; }
+}
+
+/* Final Answer Section Styles */
+.final-answer-section {
+  margin-top: 8px;
+}
+
+.final-answer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #22c55e;
+  font-weight: 700;
+  color: #22c55e;
+  font-size: 14px;
+}
+
+.answer-icon {
+  font-size: 16px;
+}
+
+.final-answer-section .content {
+  padding: 0;
+}
+
+/* Scrollbar styling for reasoning section */
+.reasoning-steps::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reasoning-steps::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 3px;
+}
+
+.reasoning-steps::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+.reasoning-steps::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
