@@ -8,6 +8,7 @@ from chromadb.config import Settings as ChromaSettings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langsmith import traceable
 
 from retrieval.constants import (
     PARENT_COLLECTION,
@@ -357,6 +358,7 @@ class VectorStoreManager:
     def build_index(self, force_download: bool = False) -> dict:
         return self.build_index_batched(force_download=force_download)
 
+    @traceable(name="vector_search", run_type="retriever")
     def search_with_scores(
         self,
         query: str,

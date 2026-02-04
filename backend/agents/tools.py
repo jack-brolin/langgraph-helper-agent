@@ -37,6 +37,14 @@ def search_docs(query: str) -> list[dict]:
         A list of relevant documentation chunks with source information
     """
     try:
+        try:
+            from langsmith.run_helpers import get_current_run_tree
+            run_tree = get_current_run_tree()
+            if run_tree:
+                run_tree.add_metadata({"search_type": "documentation", "tool": "search_docs"})
+        except Exception:
+            pass
+        
         store = _get_store()
 
         if not store.index_exists():
@@ -44,9 +52,13 @@ def search_docs(query: str) -> list[dict]:
 
         results = store.search_with_scores(query, k=5)
 
-        # Format results for the agent
         docs = []
+        filtered_count = 0
         for doc, score in results:
+            if score < 0.3:
+                filtered_count += 1
+                continue
+                
             docs.append({
                 "content": doc.page_content,
                 "source": doc.metadata.get("source", "unknown"),
@@ -54,8 +66,11 @@ def search_docs(query: str) -> list[dict]:
                 "section": doc.metadata.get("section", ""),
                 "relevance_score": round(score, 4),
             })
+        
+        if filtered_count > 0:
+            logger.info(f"Filtered {filtered_count} low-relevance docs (< 0.3)")
 
-        return docs if docs else [{"message": "No relevant documentation found."}]
+        return docs if docs else [{"message": "No relevant documentation found. Try rephrasing your query."}]
 
     except Exception as e:
         logger.error(f"search_docs error: {e}")
@@ -77,6 +92,14 @@ def web_search(query: str) -> list[dict]:
         A list of web search results with URLs and snippets
     """
     try:
+        try:
+            from langsmith.run_helpers import get_current_run_tree
+            run_tree = get_current_run_tree()
+            if run_tree:
+                run_tree.add_metadata({"search_type": "web", "tool": "web_search"})
+        except Exception:
+            pass
+        
         settings = get_settings()
 
         if not settings.is_online:
@@ -90,12 +113,23 @@ def web_search(query: str) -> list[dict]:
         response = client.search(query=query, max_results=5)
 
         results = []
+        filtered_count = 0
         for item in response.get("results", []):
+            score = item.get("score", 0.7)
+            
+            if score < 0.3:
+                filtered_count += 1
+                continue
+                
             results.append({
                 "url": item.get("url", ""),
                 "title": item.get("title", ""),
-                "snippet": item.get("content", "")
+                "snippet": item.get("content", ""),
+                "relevance_score": score
             })
+        
+        if filtered_count > 0:
+            logger.info(f"Filtered {filtered_count} low-relevance web results (< 0.3)")
 
         return results if results else [{"message": "No results found"}]
 

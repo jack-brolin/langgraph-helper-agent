@@ -9,10 +9,10 @@ from langgraph.prebuilt import ToolNode
 
 from agents.nodes import (
     agent_node,
-    should_continue,
-    evaluate_node,
-    should_continue_after_eval,
+    should_continue_agent,
+    should_continue_respond,
     respond_node,
+    route_after_tools,
 )
 from agents.state import AgentState
 from agents.tools import get_tools_for_mode
@@ -23,7 +23,7 @@ logger = logging.getLogger("langgraph_agent")
 
 _checkpointer: MemorySaver | None = None
 
-DEFAULT_MAX_ITERATIONS = 3
+DEFAULT_MAX_ITERATIONS = 5
 
 
 def get_checkpointer() -> MemorySaver:
@@ -53,9 +53,24 @@ def _check_index_status(settings: Settings) -> None:
 
 def create_agent_graph(settings: Settings, max_iterations: int = DEFAULT_MAX_ITERATIONS) -> StateGraph:
     """
-    Create the LangGraph agent with evaluation loop.
+    Create the LangGraph agent with optimized Self-RAG validation.
 
-    Graph flow: START -> agent -> tools -> evaluate -> (agent loop OR respond -> END)
+    Graph flow:
+    START -> agent -> tools -> respond -> (back to agent or END)
+              ↑_______________|
+    
+    Architecture:
+    - Agent node: Gathers information via tool calls (search_docs, web_search)
+    - Tools node: Executes tools
+    - Respond node: Assesses completeness, either:
+      * Sends guidance back to agent (what's missing)
+      * Generates final answer (END)
+    
+    Self-RAG features:
+    - Relevance filtering: Tools filter low-relevance results (< 0.3)
+    - Chunk tracking: Routing function detects repetitive information
+    - Clear separation: Agent gathers, respond assesses and synthesizes
+    - Honest responses: Acknowledges gaps when information is incomplete
     """
     _check_index_status(settings)
 
@@ -68,23 +83,34 @@ def create_agent_graph(settings: Settings, max_iterations: int = DEFAULT_MAX_ITE
 
     tools = get_tools_for_mode(settings.is_online)
     mode = "online" if settings.is_online else "offline"
-    logger.info(f"Creating agent: {len(tools)} tools, mode={mode}, max_iter={max_iterations}")
+    logger.info(f"Creating agent with Self-RAG (optimized): {len(tools)} tools, mode={mode}, max_iter={max_iterations}")
 
     llm_with_tools = llm.bind_tools(tools)
 
     graph = StateGraph(AgentState)
+    
     graph.add_node("agent", partial(agent_node, llm_with_tools=llm_with_tools, is_online=settings.is_online))
     graph.add_node("tools", ToolNode(tools))
-    graph.add_node("evaluate", partial(evaluate_node, llm=llm))
-    graph.add_node("respond", partial(respond_node, llm=llm))
+    graph.add_node("respond", partial(respond_node, llm=llm))  # Only uses base LLM, no tools
 
     graph.add_edge(START, "agent")
-    graph.add_conditional_edges("agent", should_continue, {"tools": "tools", "evaluate": "evaluate"})
-    graph.add_edge("tools", "evaluate")
-    graph.add_conditional_edges("evaluate", should_continue_after_eval, {"agent": "agent", "respond": "respond"})
-    graph.add_edge("respond", END)
+    
+    graph.add_conditional_edges("agent", should_continue_agent, {
+        "tools": "tools",  
+        "respond": "respond" 
+    })
+    
+    graph.add_conditional_edges("tools", route_after_tools, {
+        "respond": "respond",
+        END: END
+    })
+    
+    graph.add_conditional_edges("respond", should_continue_respond, {
+        "agent": "agent", 
+        END: END 
+    })
 
     compiled = graph.compile(checkpointer=get_checkpointer())
-    logger.info("Agent graph compiled successfully")
+    logger.info("Agent graph compiled with optimized Self-RAG validation")
 
     return compiled

@@ -11,8 +11,7 @@ logger = logging.getLogger("langgraph_agent")
 NODE_MESSAGES = {
     "agent": ("agent", "Iteration {}: Analyzing and deciding next action..."),
     "tools": ("tools", "Executing tools..."),
-    "evaluate": ("evaluate", "Evaluating research quality..."),
-    "respond": ("respond", "Research complete! Generating final answer..."),
+    "respond": ("respond", "Assessing results and generating response..."),
 }
 
 
@@ -31,7 +30,18 @@ class AgentExecutor:
         """
         logger.info(f"Request: thread={thread_id[:8]}, mode={self.settings.agent_mode.value}")
 
-        config = {"configurable": {"thread_id": thread_id}}
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "metadata": {
+                "mode": self.settings.agent_mode.value,
+                "thread_id": thread_id,
+                "llm_model": self.settings.llm_model,
+            },
+            "tags": [
+                self.settings.agent_mode.value,
+                f"model:{self.settings.llm_model}",
+            ]
+        }
         state = {
             "current_node": None,
             "iteration": 0,
@@ -44,12 +54,12 @@ class AgentExecutor:
         try:
             yield {"type": "reasoning", "data": {"step": "start", "message": "Starting research..."}}
 
-            # Initialize state with all required fields
             initial_state = {
                 "messages": [("user", question)],
                 "iteration_count": 0,
                 "max_iterations": DEFAULT_MAX_ITERATIONS,
-                "evaluation_result": None,
+                "should_continue_research": None,
+                "previous_doc_ids": None,
             }
 
             async for event in self.graph.astream_events(
@@ -146,7 +156,6 @@ class AgentExecutor:
         tool_name = event.get("name", "unknown")
         output = event.get("data", {}).get("output", [])
         
-        # Tools return list[dict], extract sources from them
         if isinstance(output, list):
             for item in output:
                 if isinstance(item, dict) and ("url" in item or "source" in item):

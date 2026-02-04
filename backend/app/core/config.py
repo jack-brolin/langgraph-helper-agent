@@ -36,9 +36,20 @@ class Settings(BaseSettings):
     batch_size: int = 50
     batch_delay: float = 1.0
 
+    # LangSmith Configuration
+    langsmith_tracing: bool = False
+    langsmith_api_key: str = ""
+    langsmith_project: str = "langgraph-helper-agent"
+    langsmith_endpoint: str = ""
+
     @property
     def is_online(self) -> bool:
         return self.agent_mode == AgentMode.ONLINE
+    
+    @property
+    def langsmith_enabled(self) -> bool:
+        """Check if LangSmith is properly configured."""
+        return self.langsmith_tracing and bool(self.langsmith_api_key)
 
     @property
     def data_path(self) -> Path:
